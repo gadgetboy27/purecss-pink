@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Art Generator - Proof of Concept</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #e90173;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #e90173;
+            border: none;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: #c10254;
+        }
+
+        button.secondary {
+            background: #444;
+        }
+
+        button.secondary:hover {
+            background: #555;
+        }
+
+        .output {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .canvas {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            height: 600px;
+        }
+
+        .metadata {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .metadata h2 {
+            font-size: 14px;
+            color: #e90173;
+            margin-bottom: 10px;
+        }
+
+        .metadata pre {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 10px;
+            font-size: 11px;
+            color: #e90173;
+        }
+
+        .seed-info {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>🎨 CSS Art Generator</h1>
+
+            <div class="control-group">
+                <label>Template</label>
+                <select id="template">
+                    <option value="sunset">Geometric Sunset</option>
+                    <option value="abstract">Abstract Composition</option>
+                    <option value="portrait">Stylized Portrait</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Seed (leave empty for random)</label>
+                <input type="text" id="seed" placeholder="auto-generated">
+                <div class="seed-info" id="currentSeed"></div>
+            </div>
+
+            <div class="control-group">
+                <label>Primary Color</label>
+                <input type="text" id="color1" value="#e90173">
+            </div>
+
+            <div class="control-group">
+                <label>Secondary Color</label>
+                <input type="text" id="color2" value="#2E294E">
+            </div>
+
+            <div class="control-group">
+                <label>Element Count <span class="value-display" id="countValue">5</span></label>
+                <input type="range" id="elementCount" min="3" max="20" value="5">
+            </div>
+
+            <div class="control-group">
+                <label>Complexity <span class="value-display" id="complexityValue">5</span></label>
+                <input type="range" id="complexity" min="1" max="10" value="5">
+            </div>
+
+            <div class="control-group">
+                <label>Chaos Factor <span class="value-display" id="chaosValue">0.5</span></label>
+                <input type="range" id="chaos" min="0" max="1" step="0.1" value="0.5">
+            </div>
+
+            <button id="generate">Generate Art</button>
+            <button class="secondary" id="randomize">Randomize All</button>
+            <button class="secondary" id="exportCode">Export HTML+CSS</button>
+        </div>
+
+        <div class="output">
+            <div class="canvas" id="canvas"></div>
+
+            <div class="metadata">
+                <h2>Generation Metadata (NFT Data)</h2>
+                <pre id="metadata"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Deterministic PRNG (seedable random number generator)
+        function cyrb128(str) {
+            let h1 = 1779033703, h2 = 3144134277,
+                h3 = 1013904242, h4 = 2773480762;
+            for (let i = 0, k; i < str.length; i++) {
+                k = str.charCodeAt(i);
+                h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+                h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+                h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+                h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+            }
+            h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+            h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+            h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+            h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+            return [(h1^h2^h3^h4)>>>0, (h2^h1)>>>0, (h3^h1)>>>0, (h4^h1)>>>0];
+        }
+
+        function sfc32(a, b, c, d) {
+            return function() {
+                a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+                var t = (a + b) | 0;
+                a = b ^ b >>> 9;
+                b = c + (c << 3) | 0;
+                c = (c << 21 | c >>> 11);
+                d = d + 1 | 0;
+                t = t + d | 0;
+                c = c + t | 0;
+                return (t >>> 0) / 4294967296;
+            }
+        }
+
+        function seededRandom(seed) {
+            const hash = cyrb128(seed);
+            return sfc32(hash[0], hash[1], hash[2], hash[3]);
+        }
+
+        // Color utilities
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function interpolateColor(color1, color2, factor) {
+            const c1 = hexToRgb(color1);
+            const c2 = hexToRgb(color2);
+            const r = Math.round(c1.r + (c2.r - c1.r) * factor);
+            const g = Math.round(c1.g + (c2.g - c1.g) * factor);
+            const b = Math.round(c1.b + (c2.b - c1.b) * factor);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Template generators
+        function generateSunset(params) {
+            const { seed, color1, color2, elementCount, complexity, chaos } = params;
+            const rng = seededRandom(seed);
+
+            let html = '';
+            let css = `
+                .canvas {
+                    position: relative;
+                    overflow: hidden;
+                }
+                .sky {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                        ${rng() * 180}deg,
+                        ${color2} 0%,
+                        ${interpolateColor(color2, color1, 0.3)} 50%,
+                        ${color1} 100%
+                    );
+                }
+            `;
+
+            html += '<div class="sky"></div>';
+
+            // Generate sun
+            const sunSize = 80 + rng() * 60;
+            const sunY = 20 + rng() * 30;
+            const sunX = 30 + rng() * 40;
+
+            css += `
+                .sun {
+                    position: absolute;
+                    top: ${sunY}%;
+                    left: ${sunX}%;
+                    width: ${sunSize}px;
+                    height: ${sunSize}px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle,
+                        #fff 0%,
+                        ${color1} 40%,
+                        transparent 70%
+                    );
+                    box-shadow: 0 0 60px ${color1}cc,
+                                0 0 100px ${color1}88;
+                }
+            `;
+            html += '<div class="sun"></div>';
+
+            // Generate mountains
+            for (let i = 0; i < elementCount; i++) {
+                const height = 20 + rng() * 40;
+                const left = (i * (100 / elementCount)) + (rng() * chaos * 20);
+                const width = 15 + rng() * 15;
+                const rotation = -5 + rng() * 10;
+                const darkness = 0.2 + (i / elementCount) * 0.5;
+
+                const mountainColor = interpolateColor(color2, '#000000', darkness);
+
+                css += `
+                    .mountain-${i} {
+                        position: absolute;
+                        bottom: 0;
+                        left: ${left}%;
+                        width: ${width}%;
+                        height: ${height}%;
+                        background: linear-gradient(
+                            180deg,
+                            ${mountainColor} 0%,
+                            #000000 100%
+                        );
+                        border-radius: ${40 + rng() * 20}% ${40 + rng() * 20}% 0 0 / ${20 + rng() * 30}% ${20 + rng() * 30}% 0 0;
+                        transform: rotate(${rotation}deg);
+                        z-index: ${elementCount - i};
+                    }
+                `;
+                html += `<div class="mountain-${i}"></div>`;
+            }
+
+            return { html, css };
+        }
+
+        function generateAbstract(params) {
+            const { seed, color1, color2, elementCount, complexity, chaos } = params;
+            const rng = seededRandom(seed);
+
+            let html = '';
+            let css = `
+                .canvas {
+                    position: relative;
+                    overflow: hidden;
+                    background: ${color2};
+                }
+            `;
+
+            for (let i = 0; i < elementCount; i++) {
+                const size = 50 + rng() * 200;
+                const top = rng() * 100;
+                const left = rng() * 100;
+                const rotation = rng() * 360;
+                const borderRadius = `${rng()*50}% ${rng()*50}% ${rng()*50}% ${rng()*50}% / ${rng()*50}% ${rng()*50}% ${rng()*50}% ${rng()*50}%`;
+                const opacity = 0.3 + rng() * 0.7;
+
+                const color = interpolateColor(color1, color2, rng());
+
+                css += `
+                    .shape-${i} {
+                        position: absolute;
+                        top: ${top}%;
+                        left: ${left}%;
+                        width: ${size}px;
+                        height: ${size}px;
+                        background: ${color};
+                        border-radius: ${borderRadius};
+                        transform: rotate(${rotation}deg);
+                        opacity: ${opacity};
+                        mix-blend-mode: ${rng() > 0.5 ? 'multiply' : 'screen'};
+                        box-shadow: inset ${-20 + rng() * 40}px ${-20 + rng() * 40}px ${20 + rng() * 40}px rgba(0,0,0,${rng() * 0.5});
+                    }
+                `;
+                html += `<div class="shape-${i}"></div>`;
+            }
+
+            return { html, css };
+        }
+
+        function generatePortrait(params) {
+            const { seed, color1, color2, elementCount, complexity, chaos } = params;
+            const rng = seededRandom(seed);
+
+            let html = '';
+            let css = `
+                .canvas {
+                    position: relative;
+                    overflow: hidden;
+                    background: ${color2};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .face {
+                    position: relative;
+                    width: 200px;
+                    height: 250px;
+                    background: linear-gradient(
+                        ${135 + rng() * 90}deg,
+                        ${color1} 0%,
+                        ${interpolateColor(color1, color2, 0.3)} 100%
+                    );
+                    border-radius: 50% 50% ${40 + rng() * 20}% ${40 + rng() * 20}% / 60% 60% ${40 + rng() * 20}% ${40 + rng() * 20}%;
+                    box-shadow: inset ${-10 + rng() * 20}px ${10 + rng() * 20}px 30px rgba(0,0,0,0.3);
+                }
+            `;
+            html += '<div class="face">';
+
+            // Eyes
+            for (let i = 0; i < 2; i++) {
+                const eyeX = i === 0 ? 25 : 65;
+                const eyeSize = 20 + rng() * 10;
+
+                css += `
+                    .eye-${i} {
+                        position: absolute;
+                        top: ${35 + rng() * 10}%;
+                        left: ${eyeX}%;
+                        width: ${eyeSize}px;
+                        height: ${eyeSize}px;
+                        background: #000;
+                        border-radius: 50%;
+                        box-shadow: inset 0 0 5px rgba(255,255,255,0.5);
+                    }
+                `;
+                html += `<div class="eye-${i}"></div>`;
+            }
+
+            // Nose
+            css += `
+                .nose {
+                    position: absolute;
+                    top: 50%;
+                    left: 45%;
+                    width: 15px;
+                    height: 30px;
+                    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.2), transparent);
+                    border-radius: 50%;
+                }
+            `;
+            html += '<div class="nose"></div>';
+
+            // Mouth
+            css += `
+                .mouth {
+                    position: absolute;
+                    top: 70%;
+                    left: 35%;
+                    width: 40px;
+                    height: 20px;
+                    border: 2px solid rgba(0,0,0,0.5);
+                    border-top: none;
+                    border-radius: 0 0 50% 50%;
+                }
+            `;
+            html += '<div class="mouth"></div>';
+
+            html += '</div>';
+
+            return { html, css };
+        }
+
+        // Main generation function
+        function generate() {
+            const template = document.getElementById('template').value;
+            let seed = document.getElementById('seed').value;
+
+            if (!seed) {
+                seed = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+                document.getElementById('seed').value = seed;
+            }
+
+            const params = {
+                seed,
+                color1: document.getElementById('color1').value,
+                color2: document.getElementById('color2').value,
+                elementCount: parseInt(document.getElementById('elementCount').value),
+                complexity: parseInt(document.getElementById('complexity').value),
+                chaos: parseFloat(document.getElementById('chaos').value)
+            };
+
+            let result;
+            switch(template) {
+                case 'sunset':
+                    result = generateSunset(params);
+                    break;
+                case 'abstract':
+                    result = generateAbstract(params);
+                    break;
+                case 'portrait':
+                    result = generatePortrait(params);
+                    break;
+            }
+
+            // Apply to canvas
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = result.html;
+
+            const style = document.createElement('style');
+            style.textContent = result.css;
+            document.head.appendChild(style);
+
+            // Show metadata
+            const metadata = {
+                template,
+                seed,
+                generatedAt: new Date().toISOString(),
+                parameters: params,
+                htmlHash: hashString(result.html).substring(0, 16),
+                cssHash: hashString(result.css).substring(0, 16),
+                verification: {
+                    reproducible: true,
+                    algorithm: 'v1.0.0',
+                    constraints: ['no-svg', 'pure-css']
+                }
+            };
+
+            document.getElementById('metadata').textContent = JSON.stringify(metadata, null, 2);
+            document.getElementById('currentSeed').textContent = `Current: ${seed}`;
+
+            // Store for export
+            window.currentArt = { html: result.html, css: result.css, metadata };
+        }
+
+        // Simple hash function for demonstration
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return 'Qm' + Math.abs(hash).toString(36);
+        }
+
+        // Event listeners
+        document.getElementById('generate').addEventListener('click', generate);
+
+        document.getElementById('randomize').addEventListener('click', () => {
+            document.getElementById('seed').value = '';
+            document.getElementById('color1').value = '#' + Math.floor(Math.random()*16777215).toString(16);
+            document.getElementById('color2').value = '#' + Math.floor(Math.random()*16777215).toString(16);
+            document.getElementById('elementCount').value = 3 + Math.floor(Math.random() * 17);
+            document.getElementById('complexity').value = 1 + Math.floor(Math.random() * 9);
+            document.getElementById('chaos').value = Math.random().toFixed(1);
+            updateDisplays();
+            generate();
+        });
+
+        document.getElementById('exportCode').addEventListener('click', () => {
+            if (!window.currentArt) {
+                alert('Generate art first!');
+                return;
+            }
+
+            const { html, css, metadata } = window.currentArt;
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Art - ${metadata.template}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a1a; }
+        .canvas { width: 800px; height: 600px; }
+        ${css}
+    </style>
+    <!--
+    NFT Metadata:
+    ${JSON.stringify(metadata, null, 2)}
+    -->
+</head>
+<body>
+    <div class="canvas">
+        ${html}
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `css-art-${metadata.seed.substring(0, 16)}.html`;
+            a.click();
+        });
+
+        // Update value displays
+        function updateDisplays() {
+            document.getElementById('countValue').textContent = document.getElementById('elementCount').value;
+            document.getElementById('complexityValue').textContent = document.getElementById('complexity').value;
+            document.getElementById('chaosValue').textContent = document.getElementById('chaos').value;
+        }
+
+        document.getElementById('elementCount').addEventListener('input', updateDisplays);
+        document.getElementById('complexity').addEventListener('input', updateDisplays);
+        document.getElementById('chaos').addEventListener('input', updateDisplays);
+
+        // Generate on load
+        generate();
+    </script>
+</body>
+</html>
