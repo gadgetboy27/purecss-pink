@@ -4,171 +4,135 @@ Generate unique CSS portraits from text prompts, inspired by Diana Smith's (cyan
 
 ## 🚀 Quick Start
 
-### Installation
+### Deploy to Vercel (Recommended for Testing)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/gadgetboy27/purecss-pink&project-name=css-art-generator&root-directory=css-art-gen)
+
+1. Click the button above
+2. Sign in with GitHub
+3. Configure:
+   - **Root Directory:** `css-art-gen`
+   - Click "Deploy"
+4. Done! You'll get a live URL
+
+### Or Deploy Manually
+
+1. Fork/clone this repo
+2. Go to [vercel.com](https://vercel.com)
+3. Import your repository
+4. Set **Root Directory** to `css-art-gen`
+5. Deploy!
+
+### Local Development
 
 ```bash
+cd css-art-gen
 npm install
-# or
-yarn install
-```
-
-### Run Development Server
-
-```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000)
 
 ## 📋 Features (MVP)
 
-✅ **Prompt-Based Generation** - Enter a text prompt and generate unique CSS art
-✅ **Mood Presets** - 5 mood presets (melancholic, hopeful, dramatic, serene, joyful)
-✅ **Live Preview** - See your artwork in real-time
-✅ **Download HTML** - Get the complete HTML+CSS file
-✅ **Provenance Tracking** - Cryptographic fingerprint for each artwork
-✅ **Certificate of Authenticity** - Verifiable certificate embedded in code
+✅ **Prompt-Based Generation** - Enter text, get unique CSS art
+✅ **5 Mood Presets** - Melancholic, hopeful, dramatic, serene, joyful
+✅ **Live Preview** - See artwork instantly
+✅ **Download HTML** - Get standalone file
+✅ **Generation Counter** - Every piece numbered
+✅ **Provenance Tracking** - Cryptographic fingerprints
+✅ **Rate Limiting** - 10 per hour (quality control)
+✅ **Security** - Anti-spam, input validation
+✅ **Scope Documentation** - Clear CAN/CANNOT lists
 
-## 🎨 How It Works
+## 🎨 Test Prompts
 
-1. **Enter a Prompt** - Describe the mood and colors you want
-2. **Generate** - Algorithm creates unique CSS parameters from your prompt
-3. **Preview** - See the artwork rendered instantly
-4. **Download** - Get standalone HTML file with embedded certificate
+Try these:
 
-## 💻 Tech Stack
+```
+"serene portrait in blue tones with soft lighting"
+"dramatic portrait with intense shadows"
+"hopeful portrait in warm yellow colors"
+"melancholic portrait in deep blue"
+"joyful portrait with vibrant colors"
+```
+
+## 🔍 What to Test
+
+1. **Visual Quality** - Do portraits look good?
+2. **Variation** - Are results unique?
+3. **Counter** - Does numbering work?
+4. **Security** - Try 11 generations (should block)
+5. **Downloads** - Do files work standalone?
+
+## ⚠️ Important Notes
+
+**Cloud Deployment (Vercel):**
+- Counter uses in-memory storage (resets on deploy)
+- For production, needs database (Supabase/PlanetScale)
+- All generation features work, just counter doesn't persist
+
+**Local Development:**
+- Counter uses file-based storage
+- Persists between runs
+- Full functionality
+
+## 📝 Testing Checklist
+
+- [ ] Generate 5-10 artworks
+- [ ] Try different moods
+- [ ] Download HTML files
+- [ ] Open downloads in browser
+- [ ] Check visual quality
+- [ ] Test rate limiting (generate 11 times)
+- [ ] Verify generation numbers increment
+
+## 🚧 Known Limitations (By Design)
+
+**What We CAN Do:**
+- Stylized CSS portraits
+- Mood-based color palettes
+- Unique variations
+- Provable authenticity
+
+**What We CANNOT Do:**
+- Photorealistic portraits
+- Multi-person scenes
+- Fine details (wrinkles, pores)
+- Non-portrait subjects
+
+See `SCOPE_AND_LIMITATIONS.md` for full details.
+
+## 📊 Tech Stack
 
 - **Next.js 14** - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
-- **Seeded Randomness** - Deterministic but unique generation
+- **Vercel** - Deployment (recommended)
 
-## 📂 Project Structure
+## 🙏 Attribution
 
-```
-css-art-gen/
-├── src/
-│   ├── app/              # Next.js pages
-│   │   ├── page.tsx      # Main generator UI
-│   │   └── layout.tsx    # Root layout
-│   ├── lib/              # Core logic
-│   │   ├── types.ts      # TypeScript types
-│   │   ├── randomness.ts # Random number generation
-│   │   ├── parameter-generator.ts  # Parameter system
-│   │   ├── css-generator.ts        # CSS generation
-│   │   └── provenance.ts           # Provenance tracking
-│   └── components/       # React components (future)
-├── public/               # Static assets
-└── package.json
-```
+**Inspired by Diana Smith (cyanHarlow)**
+- Original: [purecss-pink](https://github.com/cyanharlow/purecss-pink)
+- Website: [diana-adrianne.com](http://diana-adrianne.com)
 
-## 🎯 What's NOT in This MVP
-
-❌ Blockchain/NFT minting (Phase 2)
-❌ Payment processing (Phase 2)
-❌ Chainlink VRF randomness (Phase 3)
-❌ User accounts (Phase 3)
-❌ Gallery/showcase (Phase 3)
-
-## 🧪 Testing
-
-Try these prompts to see different results:
-
-- "serene portrait in blue tones with soft lighting"
-- "dramatic portrait with intense shadows"
-- "hopeful portrait in warm yellow colors"
-- "melancholic portrait in deep blue"
-- "joyful portrait with vibrant colors"
-
-## 📝 Provenance & Attribution
-
-Every artwork includes:
-- Unique cryptographic fingerprint
-- Prompt and timestamp
-- Parameter snapshot
-- Attribution to Diana Smith (cyanHarlow)
-
-**Important:** This project uses techniques pioneered by Diana Smith. Before any commercial use, we MUST:
-1. Contact Diana for permission
-2. Set up revenue sharing (15% proposed)
-3. Get her approval of the implementation
-
-## 🚧 Development Roadmap
-
-### Phase 1: MVP (Current)
-- [x] Basic generator
-- [x] 5 mood presets
-- [x] Provenance tracking
-- [x] Download functionality
-
-### Phase 2: Blockchain (Next)
-- [ ] Smart contract for revenue splits
-- [ ] NFT minting
-- [ ] IPFS upload
-- [ ] Wallet connection
-
-### Phase 3: Advanced Features
-- [ ] Chainlink VRF randomness
-- [ ] Multi-tier pricing
-- [ ] User gallery
-- [ ] Admin dashboard
-
-### Phase 4: Production
-- [ ] Contact Diana Smith
-- [ ] Legal review
-- [ ] Security audit
-- [ ] Mainnet deployment
-
-## 🔒 Security Notes
-
-This MVP uses:
-- Seeded pseudorandom generation (deterministic)
-- Client-side only (no server storage)
-- No authentication required
-- No blockchain transactions
-
-Production will require:
-- Smart contract audit
-- Secure key management
-- Rate limiting
-- Input validation
-
-## 🤝 Contributing
-
-This is currently a private MVP. Before contributing:
-1. Understand we need Diana Smith's permission
-2. Read the BUILD_PLAN.md for context
-3. Follow TypeScript and React best practices
+**Important:** Contact Diana before commercial use. She receives 15% of platform revenue.
 
 ## 📄 License
 
 Not yet licensed - pending discussion with Diana Smith.
 
-Original technique by Diana Smith (cyanHarlow) - https://github.com/cyanharlow/purecss-pink
+## 🎯 Next Steps
 
-## 🙏 Attribution
-
-**This project is inspired by and based on the pioneering work of:**
-- **Diana Smith** (cyanHarlow)
-- Original project: [purecss-pink](https://github.com/cyanharlow/purecss-pink)
-- Website: [diana-adrianne.com](http://diana-adrianne.com)
-
-Diana Smith invented this technique of creating detailed portraits using only CSS and HTML. This generator extends her concept into a prompt-based system.
-
-**Revenue Sharing:** Diana Smith will receive 15% of all platform revenue once commercialized (pending her approval).
-
-## 📞 Next Steps Before Launch
-
-1. **Contact Diana Smith** - Get permission and wallet address
-2. **Legal Review** - Terms of service, licensing
-3. **Security Audit** - Smart contracts and payment flows
-4. **User Testing** - Get feedback from beta users
-5. **Marketing** - Build community before launch
+1. **Test quality** - Generate 20+ artworks
+2. **Get feedback** - Show to others
+3. **Assess results** - Good enough to proceed?
+4. **Contact Diana** - If quality validated
+5. **Phase 2** - Blockchain/NFT integration
 
 ---
 
-**MVP Status:** ✅ Complete and ready for demo
-**Production Status:** ⏳ Awaiting Diana Smith's approval
-**Estimated Timeline:** 2-3 months to production-ready
+**MVP Status:** ✅ Ready for testing
+**Production Status:** ⏳ Awaiting validation & Diana's approval
+
+**Questions?** Check documentation in this folder or open an issue.

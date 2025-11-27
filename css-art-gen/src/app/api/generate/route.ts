@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { incrementCounter, checkRateLimit, getCounter } from '@/lib/counter';
+import { incrementCounter, checkRateLimit, getCounter } from '@/lib/counter-cloud';
 import { validatePrompt } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
