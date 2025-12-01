@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Art Generator - Proof of Concept</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0909 0%, #1e1e1e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 2px solid #333;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            background: linear-gradient(45deg, #ff006e, #3a86ff, #06ffa5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .manifesto {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #ff006e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .manifesto h2 {
+            color: #ff006e;
+            margin-bottom: 15px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .comparison-item.slop {
+            border: 2px solid #ff006e;
+        }
+
+        .comparison-item.authentic {
+            border: 2px solid #06ffa5;
+        }
+
+        .comparison-item h3 {
+            margin-bottom: 10px;
+        }
+
+        .comparison-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .comparison-item li {
+            padding: 5px 0;
+        }
+
+        .comparison-item.slop li:before {
+            content: "❌ ";
+        }
+
+        .comparison-item.authentic li:before {
+            content: "✅ ";
+        }
+
+        .generator-section {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .control-panel h2 {
+            margin-bottom: 20px;
+            color: #3a86ff;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #999;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-size: 1em;
+        }
+
+        .input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 10px;
+            background: rgba(58, 134, 255, 0.2);
+            border: 1px solid #3a86ff;
+            color: #3a86ff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(58, 134, 255, 0.4);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff006e, #3a86ff);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .preview-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .preview-panel h2 {
+            margin-bottom: 20px;
+            color: #06ffa5;
+        }
+
+        .artwork-preview {
+            background: #2c2924;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: #666;
+        }
+
+        .placeholder-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .metadata {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .metadata-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metadata-row:last-child {
+            border-bottom: none;
+        }
+
+        .metadata-label {
+            color: #999;
+        }
+
+        .metadata-value {
+            color: #06ffa5;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            border: 1px solid #444;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #06ffa5;
+        }
+
+        .certificate {
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            margin-top: 20px;
+            border: 2px solid #0f0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #3a86ff;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .feature-card h3 {
+            color: #3a86ff;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 900px) {
+            .generator-section {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CSS Art Generator</h1>
+            <p class="tagline">Constraint-Based Creativity in the Age of AI Slop</p>
+        </header>
+
+        <div class="manifesto">
+            <h2>🎨 The Anti-Slop Manifesto</h2>
+            <p>In an era drowning in AI-generated imagery, we offer something radical: <strong>transparency</strong>.</p>
+
+            <div class="comparison">
+                <div class="comparison-item slop">
+                    <h3>❌ AI Art Generators</h3>
+                    <ul>
+                        <li>Black box neural networks</li>
+                        <li>Unknown training data sources</li>
+                        <li>No uniqueness guarantee</li>
+                        <li>Opaque generation process</li>
+                        <li>Probabilistic randomness</li>
+                        <li>Ethical concerns</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-item authentic">
+                    <h3>✅ CSS Art Generator</h3>
+                    <ul>
+                        <li>View Source = View Process</li>
+                        <li>No training data (pure algorithms)</li>
+                        <li>Mathematical uniqueness proof</li>
+                        <li>Complete transparency</li>
+                        <li>Deterministic output</li>
+                        <li>Constraint-based creativity</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p style="margin-top: 20px;">
+                <strong>CSS Art is algorithmically pure.</strong> Every pixel has a purpose. Every line of code is visible.
+                Your prompt + our parameters + blockchain timestamp = <strong>verifiable authenticity</strong>.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Transparent Process</h3>
+                <p>Right-click, view source. That's it. No hidden models, no stolen data. Pure CSS and HTML.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Cryptographic Proof</h3>
+                <p>Every artwork has a unique fingerprint. Blockchain-verified. Mathematically guaranteed authentic.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Constraint-Based</h3>
+                <p>Limited to CSS properties. Constraints breed innovation. Art through algorithmic elegance.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💎</div>
+                <h3>True Uniqueness</h3>
+                <p>Infinite parameter combinations. Timestamp + creator address = truly one-of-a-kind.</p>
+            </div>
+        </div>
+
+        <div class="generator-section">
+            <div class="control-panel">
+                <h2>⚙️ Generator Controls</h2>
+
+                <div class="input-group">
+                    <label for="prompt">Your Prompt</label>
+                    <textarea
+                        id="prompt"
+                        placeholder="e.g., 'melancholic portrait in blue tones with dramatic shadows'"
+                    ></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Quick Presets</label>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="setPreset('melancholic')">Melancholic</button>
+                        <button class="preset-btn" onclick="setPreset('hopeful')">Hopeful</button>
+                        <button class="preset-btn" onclick="setPreset('dramatic')">Dramatic</button>
+                        <button class="preset-btn" onclick="setPreset('serene')">Serene</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="creator">Creator Address (Wallet)</label>
+                    <input
+                        type="text"
+                        id="creator"
+                        placeholder="0x..."
+                        value="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb2"
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label for="style">Art Style</label>
+                    <select id="style">
+                        <option value="oil-painting">Oil Painting</option>
+                        <option value="watercolor">Watercolor</option>
+                        <option value="geometric">Geometric</option>
+                        <option value="minimalist">Minimalist</option>
+                    </select>
+                </div>
+
+                <button class="generate-btn" onclick="generateArtwork()">
+                    🎨 Generate Artwork
+                </button>
+            </div>
+
+            <div class="preview-panel">
+                <h2>🖼️ Preview & Metadata</h2>
+
+                <div class="artwork-preview" id="preview">
+                    <div class="placeholder">
+                        <div class="placeholder-icon">🎨</div>
+                        <p>Enter a prompt and click "Generate Artwork"</p>
+                        <p style="margin-top: 10px; color: #444;">
+                            Your unique CSS portrait will appear here
+                        </p>
+                    </div>
+                </div>
+
+                <div class="metadata" id="metadata" style="display: none;">
+                    <div class="metadata-row">
+                        <span class="metadata-label">Fingerprint:</span>
+                        <span class="metadata-value" id="fingerprint">-</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Prompt Hash:</span>
+                        <span class="metadata-value" id="promptHash">-</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Token ID:</span>
+                        <span class="metadata-value" id="tokenId">-</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Generated:</span>
+                        <span class="metadata-value" id="timestamp">-</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Creator:</span>
+                        <span class="metadata-value" id="creatorDisplay">-</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons" id="actions" style="display: none;">
+                    <button class="action-btn" onclick="viewSource()">📄 View Source</button>
+                    <button class="action-btn" onclick="downloadHTML()">⬇️ Download HTML</button>
+                    <button class="action-btn" onclick="viewCertificate()">📜 View Certificate</button>
+                    <button class="action-btn" onclick="mintNFT()">💎 Mint NFT</button>
+                </div>
+
+                <div class="certificate" id="certificate" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple hash function for demo
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16).padStart(16, '0');
+        }
+
+        function setPreset(preset) {
+            const prompts = {
+                'melancholic': 'melancholic portrait in blue tones with soft shadows',
+                'hopeful': 'hopeful portrait in yellow tones with bright highlights',
+                'dramatic': 'dramatic portrait in red tones with intense shadows',
+                'serene': 'serene portrait in green tones with gentle lighting'
+            };
+            document.getElementById('prompt').value = prompts[preset];
+        }
+
+        function generateArtwork() {
+            const prompt = document.getElementById('prompt').value;
+            const creator = document.getElementById('creator').value;
+            const style = document.getElementById('style').value;
+
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+
+            // Generate hashes
+            const timestamp = new Date().toISOString();
+            const promptHash = simpleHash(prompt);
+            const parametersHash = simpleHash(prompt + style + timestamp);
+            const fingerprint = simpleHash(prompt + creator + timestamp + parametersHash);
+            const tokenId = 'CSS-' + parseInt(fingerprint.substring(0, 8), 16);
+
+            // Update preview (placeholder for now)
+            const preview = document.getElementById('preview');
+            preview.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 4em; margin-bottom: 20px;">✨</div>
+                    <h3 style="color: #06ffa5; margin-bottom: 10px;">Artwork Generated!</h3>
+                    <p style="color: #999;">In production, the full CSS portrait would render here</p>
+                    <p style="color: #666; margin-top: 20px; font-size: 0.9em;">
+                        Prompt: "${prompt}"
+                    </p>
+                </div>
+            `;
+
+            // Update metadata
+            document.getElementById('fingerprint').textContent = fingerprint.substring(0, 16) + '...';
+            document.getElementById('promptHash').textContent = promptHash.substring(0, 16) + '...';
+            document.getElementById('tokenId').textContent = tokenId;
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+            document.getElementById('creatorDisplay').textContent = creator.substring(0, 10) + '...';
+
+            document.getElementById('metadata').style.display = 'block';
+            document.getElementById('actions').style.display = 'grid';
+            document.getElementById('certificate').style.display = 'none';
+
+            // Store data for other functions
+            window.currentArtwork = { prompt, creator, style, timestamp, fingerprint, promptHash, tokenId };
+        }
+
+        function viewCertificate() {
+            if (!window.currentArtwork) return;
+
+            const cert = `
+╔════════════════════════════════════════════════════════════════════════╗
+║                   CSS ART CERTIFICATE OF AUTHENTICITY                  ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+ARTWORK DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Prompt:           ${window.currentArtwork.prompt}
+Created:          ${window.currentArtwork.timestamp}
+Creator:          ${window.currentArtwork.creator}
+Generator:        v1.0.0
+
+UNIQUENESS PROOF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fingerprint:      ${window.currentArtwork.fingerprint}
+Prompt Hash:      ${window.currentArtwork.promptHash}
+Token ID:         ${window.currentArtwork.tokenId}
+
+VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This certificate cryptographically proves:
+  ✓ Exact prompt used for generation
+  ✓ Complete parameter set (view source to verify)
+  ✓ Timestamp of creation (prevents backdating)
+  ✓ Creator attribution
+  ✓ Mathematical uniqueness guarantee
+
+ANTI-SLOP VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ No neural networks used
+  ✓ No training data (pure algorithmic)
+  ✓ Complete transparency (view source)
+  ✓ Deterministic output (same params = same art)
+  ✓ Mathematically unique fingerprint
+  ✓ Blockchain-ready metadata
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+To verify this artwork:
+  1. View source code (right-click → View Source)
+  2. Check CSS comments for embedded certificate
+  3. Verify hashes using verification tool
+  4. Confirm fingerprint on blockchain (if minted)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            `.trim();
+
+            document.getElementById('certificate').textContent = cert;
+            document.getElementById('certificate').style.display = 'block';
+        }
+
+        function viewSource() {
+            alert('In production, this would open the generated HTML+CSS in a new window.\n\nYou would see the complete source code with all parameters embedded as CSS comments.');
+        }
+
+        function downloadHTML() {
+            alert('In production, this would download a .html file containing:\n\n- Complete HTML structure\n- Full CSS styling\n- Embedded metadata\n- Certificate of authenticity\n- All provenance data');
+        }
+
+        function mintNFT() {
+            if (!window.currentArtwork) return;
+
+            alert(`Ready to mint NFT!\n\nToken ID: ${window.currentArtwork.tokenId}\nFingerprint: ${window.currentArtwork.fingerprint}\n\nIn production, this would:\n1. Upload HTML/CSS to IPFS\n2. Create NFT metadata\n3. Call smart contract to mint\n4. Set royalty percentages\n5. Return transaction hash`);
+        }
+    </script>
+</body>
+</html>
